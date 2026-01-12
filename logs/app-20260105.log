@@ -1,0 +1,4 @@
+2026-01-05T22:27:43.368+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/v1/cars/dashboard-serial", "Duration": "287.9028ms"}
+2026-01-05T22:28:05.980+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/v1/cars/dashboard-concurrent", "Duration": "163.8051ms"}
+2026-01-05T22:28:20.510+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/v1/cars/dashboard-serial", "Duration": "155.5118ms"}
+2026-01-05T22:28:23.276+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/v1/cars/dashboard-concurrent", "Duration": "125.797ms"}
