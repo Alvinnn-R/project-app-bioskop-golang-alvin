@@ -3,7 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"net/http"
-	"session-23/internal/dto"
+	"project-app-bioskop/internal/dto"
 )
 
 type Reponse struct {

@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
-	"session-23/pkg/utils"
+	"project-app-bioskop/pkg/utils"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"

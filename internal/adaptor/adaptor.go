@@ -1,44 +1,32 @@
 package adaptor
 
 import (
-	"net/http"
-	"session-23/internal/usecase"
-	"session-23/pkg/utils"
+	"project-app-bioskop/internal/data/repository"
+	"project-app-bioskop/internal/usecase"
+	"project-app-bioskop/pkg/utils"
 )
 
-type AdaptorCar struct {
-	Usecase usecase.ServiceCar
-	Config  utils.Configuration
+type Adaptor struct {
+	AuthAdaptor    *AuthAdaptor
+	CinemaAdaptor  *CinemaAdaptor
+	SeatAdaptor    *SeatAdaptor
+	BookingAdaptor *BookingAdaptor
+	PaymentAdaptor *PaymentAdaptor
 }
 
-func NewAdaptorCar(usecase *usecase.ServiceCar, config utils.Configuration) *AdaptorCar {
-	return &AdaptorCar{Usecase: *usecase, Config: config}
-}
+func NewAdaptor(repo *repository.Repository, config utils.Configuration) *Adaptor {
+	// Initialize all usecases
+	authUseCase := usecase.NewAuthUseCase(repo)
+	cinemaUseCase := usecase.NewCinemaUseCase(repo)
+	seatUseCase := usecase.NewSeatUseCase(repo)
+	bookingUseCase := usecase.NewBookingUseCase(repo)
+	paymentUseCase := usecase.NewPaymentUseCase(repo)
 
-func (usecaseAdaptor *AdaptorCar) Dashboard(w http.ResponseWriter, r *http.Request) {
-	// Get limit from config
-	limit := usecaseAdaptor.Config.Limit
-
-	// Get data from usecase with context
-	response, err := usecaseAdaptor.Usecase.DashboardSerial(r.Context(), limit)
-	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusInternalServerError, "Failed to fetch cars: "+err.Error(), nil)
-		return
+	return &Adaptor{
+		AuthAdaptor:    NewAuthAdaptor(authUseCase),
+		CinemaAdaptor:  NewCinemaAdaptor(cinemaUseCase),
+		SeatAdaptor:    NewSeatAdaptor(seatUseCase),
+		BookingAdaptor: NewBookingAdaptor(bookingUseCase),
+		PaymentAdaptor: NewPaymentAdaptor(paymentUseCase),
 	}
-
-	utils.ResponseSuccess(w, http.StatusOK, "success get data", response)
-}
-
-func (usecaseAdaptor *AdaptorCar) DashboardConcurrent(w http.ResponseWriter, r *http.Request) {
-	// Get limit from config
-	limit := usecaseAdaptor.Config.Limit
-
-	// Get data from usecase with context using concurrent queries
-	response, err := usecaseAdaptor.Usecase.DashboardConcurrent(r.Context(), limit)
-	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusInternalServerError, "Failed to fetch cars: "+err.Error(), nil)
-		return
-	}
-
-	utils.ResponseSuccess(w, http.StatusOK, "success get data with concurrent", response)
 }

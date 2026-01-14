@@ -35,17 +35,17 @@ type SeatAvailability struct {
 
 // Movie represents a movie entity
 type Movie struct {
-	ID               int       `json:"id"`
-	Title            string    `json:"title"`
-	PosterURL        string    `json:"poster_url"`
-	Genres           []string  `json:"genres"`
-	Rating           float64   `json:"rating"`
-	ReviewCount      int       `json:"review_count"`
-	ReleaseDate      time.Time `json:"release_date"`
-	DurationMinutes  int       `json:"duration_minutes"`
-	ReleaseStatus    string    `json:"release_status"`
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
+	ID              int       `json:"id"`
+	Title           string    `json:"title"`
+	PosterURL       string    `json:"poster_url"`
+	Genres          []string  `json:"genres"`
+	Rating          float64   `json:"rating"`
+	ReviewCount     int       `json:"review_count"`
+	ReleaseDate     time.Time `json:"release_date"`
+	DurationMinutes int       `json:"duration_minutes"`
+	ReleaseStatus   string    `json:"release_status"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 // Showtime represents a movie showtime
@@ -57,4 +57,6 @@ type Showtime struct {
 	ShowDate string  `json:"show_date"`
 	ShowTime string  `json:"show_time"`
 	Price    float64 `json:"price"`
+	Movie    *Movie  `json:"movie,omitempty"`
+	Studio   *Studio `json:"studio,omitempty"`
 }

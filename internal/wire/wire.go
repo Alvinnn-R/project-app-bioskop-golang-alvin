@@ -1,47 +1,66 @@
 package wire
 
 import (
-	"session-23/internal/adaptor"
-	"session-23/internal/data/repository"
-	"session-23/internal/middleware"
-	"session-23/internal/usecase"
-	"session-23/pkg/utils"
+	"project-app-bioskop/internal/adaptor"
+	"project-app-bioskop/internal/data/repository"
+	"project-app-bioskop/internal/usecase"
+	"project-app-bioskop/pkg/middleware"
+	"project-app-bioskop/pkg/utils"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 )
 
-func Wiring(repo repository.Repository, config utils.Configuration, logger *zap.Logger) *chi.Mux {
+func Wiring(repo *repository.Repository, config utils.Configuration, logger *zap.Logger) *chi.Mux {
 	router := chi.NewRouter()
-	
+
 	// Chi built-in middleware
 	router.Use(chiMiddleware.RequestID)
 	router.Use(chiMiddleware.RealIP)
 	router.Use(chiMiddleware.Recoverer)
-	
-	// Custom logging middleware to track duration
+
+	// Custom logging middleware
 	mw := middleware.NewMiddlewareCustome(logger)
 	router.Use(mw.Logging)
-	
-	// Mount routes
-	router.Mount("/api/v1", ApiV1(repo, config))
-	
-	return router
-}
 
-func ApiV1(repo repository.Repository, config utils.Configuration) *chi.Mux {
-	r := chi.NewRouter()
-	
-	// Wire car routes
-	useCaseCar := usecase.NewServiceCar(&repo)
-	adaptorCar := adaptor.NewAdaptorCar(useCaseCar, config)
-	
-	// Car dashboard routes
-	r.Route("/cars", func(r chi.Router) {
-		r.Get("/dashboard-serial", adaptorCar.Dashboard)
-		r.Get("/dashboard-concurrent", adaptorCar.DashboardConcurrent)
+	// Initialize all adaptors
+	adaptors := adaptor.NewAdaptor(repo, config)
+
+	// Create auth usecase for middleware
+	authUseCase := usecase.NewAuthUseCase(repo)
+	authMiddleware := middleware.NewAuthMiddleware(authUseCase)
+
+	// Mount API routes
+	router.Route("/api", func(r chi.Router) {
+		// Public routes - Authentication
+		r.Post("/register", adaptors.AuthAdaptor.Register)
+		r.Post("/login", adaptors.AuthAdaptor.Login)
+
+		// Public routes - Cinema
+		r.Get("/cinemas", adaptors.CinemaAdaptor.GetAll)
+		r.Get("/cinemas/{cinemaId}", adaptors.CinemaAdaptor.GetByID)
+		r.Get("/cinemas/{cinemaId}/showtimes", adaptors.SeatAdaptor.GetShowtimes)
+		r.Get("/cinemas/{cinemaId}/seats", adaptors.SeatAdaptor.GetAvailability)
+
+		// Public routes - Payment Methods
+		r.Get("/payment-methods", adaptors.PaymentAdaptor.GetMethods)
+
+		// Protected routes - require authentication
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware.RequireAuth)
+
+			// Auth
+			r.Post("/logout", adaptors.AuthAdaptor.Logout)
+
+			// Booking
+			r.Post("/booking", adaptors.BookingAdaptor.Create)
+			r.Post("/pay", adaptors.PaymentAdaptor.ProcessPayment)
+
+			// User routes
+			r.Get("/user/bookings", adaptors.BookingAdaptor.GetUserBookings)
+		})
 	})
-	
-	return r
+
+	return router
 }
