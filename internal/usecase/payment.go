@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"project-app-bioskop/internal/data/entity"
 	"project-app-bioskop/internal/data/repository"
@@ -65,12 +66,22 @@ func (u *PaymentUseCase) ProcessPayment(ctx context.Context, userID int, req dto
 		return dto.PaymentResponse{}, errors.New("invalid payment method")
 	}
 
+	// Convert payment details to JSON format for jsonb column
+	var paymentDetailsJSON []byte
+	if req.PaymentDetails != "" {
+		// Wrap string in JSON object if it's not already valid JSON
+		detailsMap := map[string]string{"info": req.PaymentDetails}
+		paymentDetailsJSON, _ = json.Marshal(detailsMap)
+	} else {
+		paymentDetailsJSON = []byte("{}")
+	}
+
 	// Create payment record
 	payment := entity.Payment{
 		BookingID:       req.BookingID,
 		PaymentMethodID: req.PaymentMethod,
 		Status:          "completed",
-		PaymentDetails:  req.PaymentDetails,
+		PaymentDetails:  string(paymentDetailsJSON),
 	}
 
 	paymentID, err := u.Repo.Payment.CreatePayment(ctx, payment)

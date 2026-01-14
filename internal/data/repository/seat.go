@@ -27,12 +27,16 @@ func NewSeatRepo(db *pgxpool.Pool) SeatRepoInterface {
 // GetSeatsByShowtime retrieves all seats with availability status for a showtime
 func (r *SeatRepo) GetSeatsByShowtime(ctx context.Context, showtimeID int) ([]entity.SeatAvailability, error) {
 	query := `
-		SELECT s.id, s.seat_code, s.studio_id,
-			   CASE WHEN bs.id IS NOT NULL THEN true ELSE false END as is_booked
+		SELECT DISTINCT s.id, s.seat_code, s.studio_id,
+			   CASE WHEN EXISTS (
+			   		SELECT 1 FROM booking_seats bs
+			   		INNER JOIN bookings b ON b.id = bs.booking_id
+			   		WHERE bs.seat_id = s.id 
+			   		AND b.showtime_id = $1 
+			   		AND b.status != 'cancelled'
+			   ) THEN true ELSE false END as is_booked
 		FROM seats s
 		INNER JOIN showtimes st ON st.studio_id = s.studio_id
-		LEFT JOIN booking_seats bs ON bs.seat_id = s.id
-		LEFT JOIN bookings b ON b.id = bs.booking_id AND b.showtime_id = st.id AND b.status != 'cancelled'
 		WHERE st.id = $1
 		ORDER BY s.seat_code`
 
