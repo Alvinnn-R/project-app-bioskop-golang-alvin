@@ -58,7 +58,7 @@ func (u *SeatUseCase) GetShowtimesByCinema(ctx context.Context, cinemaID int) ([
 			ShowTime: st.ShowTime,
 			Price:    st.Price,
 		}
-		
+
 		// Add movie info if available
 		if st.Movie != nil {
 			showtimeResp.Movie = dto.MovieResponse{
@@ -70,7 +70,7 @@ func (u *SeatUseCase) GetShowtimesByCinema(ctx context.Context, cinemaID int) ([
 				DurationMinutes: st.Movie.DurationMinutes,
 			}
 		}
-		
+
 		// Add studio info if available
 		if st.Studio != nil {
 			showtimeResp.Studio = dto.StudioResponse{
@@ -79,7 +79,7 @@ func (u *SeatUseCase) GetShowtimesByCinema(ctx context.Context, cinemaID int) ([
 				TotalSeats: st.Studio.TotalSeats,
 			}
 		}
-		
+
 		response = append(response, showtimeResp)
 	}
 

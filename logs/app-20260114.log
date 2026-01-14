@@ -54,3 +54,15 @@
 2026-01-14T21:42:37.193+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/showtimes", "Duration": "520µs"}
 2026-01-14T21:43:10.817+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/showtimes", "Duration": "1.0287ms"}
 2026-01-14T21:49:50.074+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/showtimes", "Duration": "3.7923ms"}
+2026-01-14T21:52:47.390+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/showtimes", "Duration": "8.1881ms"}
+2026-01-14T21:53:08.255+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/showtimes", "Duration": "1.2579ms"}
+2026-01-14T21:55:39.453+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/showtime", "Duration": "0s"}
+2026-01-14T21:55:50.114+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/login", "Duration": "90.576ms"}
+2026-01-14T21:55:53.373+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/showtime", "Duration": "0s"}
+2026-01-14T21:55:54.436+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/showtime", "Duration": "0s"}
+2026-01-14T21:56:14.524+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/showtimes", "Duration": "5.7657ms"}
+2026-01-14T21:56:33.299+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/seats?date=2026-01-14&time=10:00:00", "Duration": "5.9783ms"}
+2026-01-14T22:01:01.066+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/payment-methods", "Duration": "2.1179ms"}
+2026-01-14T22:02:38.313+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/pay", "Duration": "3.0471ms"}
+2026-01-14T22:02:51.273+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/pay", "Duration": "778.6µs"}
+2026-01-14T22:04:34.533+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/user/bookings", "Duration": "6.9164ms"}

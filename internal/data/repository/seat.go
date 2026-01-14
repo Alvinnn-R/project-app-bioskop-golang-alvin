@@ -149,16 +149,16 @@ func (r *SeatRepo) GetShowtimesByCinema(ctx context.Context, cinemaID int) ([]en
 		var st entity.Showtime
 		var movie entity.Movie
 		var studio entity.Studio
-		
+
 		if err := rows.Scan(
-			&st.ID, &st.CinemaID, &st.StudioID, &st.MovieID, 
+			&st.ID, &st.CinemaID, &st.StudioID, &st.MovieID,
 			&st.ShowDate, &st.ShowTime, &st.Price,
 			&movie.ID, &movie.Title, &movie.PosterURL, &movie.Genres, &movie.Rating, &movie.DurationMinutes,
 			&studio.ID, &studio.Name, &studio.TotalSeats,
 		); err != nil {
 			return nil, err
 		}
-		
+
 		st.Movie = &movie
 		st.Studio = &studio
 		showtimes = append(showtimes, st)
