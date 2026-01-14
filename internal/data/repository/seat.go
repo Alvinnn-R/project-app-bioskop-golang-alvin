@@ -72,21 +72,36 @@ func (r *SeatRepo) GetShowtimeByParams(ctx context.Context, cinemaID int, date, 
 	return st, nil
 }
 
-// GetShowtimeByID retrieves showtime by ID
+// GetShowtimeByID retrieves showtime by ID with movie and studio details
 func (r *SeatRepo) GetShowtimeByID(ctx context.Context, id int) (entity.Showtime, error) {
-	query := `SELECT id, cinema_id, studio_id, movie_id, 
-			  show_date::text as show_date, 
-			  show_time::text as show_time, 
-			  price 
-			  FROM showtimes WHERE id = $1`
+	query := `SELECT 
+				st.id, st.cinema_id, st.studio_id, st.movie_id, 
+			  	st.show_date::text as show_date, 
+			  	st.show_time::text as show_time, 
+			  	st.price,
+				m.id, m.title, m.poster_url, m.genres, m.rating, m.duration_in_minutes,
+				s.id, s.name, s.total_seats
+			  FROM showtimes st
+			  INNER JOIN movies m ON m.id = st.movie_id
+			  INNER JOIN studios s ON s.id = st.studio_id
+			  WHERE st.id = $1`
+
 	var st entity.Showtime
+	var movie entity.Movie
+	var studio entity.Studio
+
 	err := r.DB.QueryRow(ctx, query, id).Scan(
 		&st.ID, &st.CinemaID, &st.StudioID, &st.MovieID,
 		&st.ShowDate, &st.ShowTime, &st.Price,
+		&movie.ID, &movie.Title, &movie.PosterURL, &movie.Genres, &movie.Rating, &movie.DurationMinutes,
+		&studio.ID, &studio.Name, &studio.TotalSeats,
 	)
 	if err != nil {
 		return st, err
 	}
+
+	st.Movie = &movie
+	st.Studio = &studio
 	return st, nil
 }
 

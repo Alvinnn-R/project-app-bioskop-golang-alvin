@@ -66,3 +66,13 @@
 2026-01-14T22:02:38.313+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/pay", "Duration": "3.0471ms"}
 2026-01-14T22:02:51.273+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/pay", "Duration": "778.6µs"}
 2026-01-14T22:04:34.533+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/user/bookings", "Duration": "6.9164ms"}
+2026-01-15T00:10:58.681+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/logout", "Duration": "3.6702ms"}
+2026-01-15T00:11:11.567+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/logout", "Duration": "6.5656ms"}
+2026-01-15T00:11:17.543+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/register", "Duration": "1.2388ms"}
+2026-01-15T00:11:35.515+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/login", "Duration": "86.8282ms"}
+2026-01-15T00:11:43.926+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas", "Duration": "3.6848ms"}
+2026-01-15T00:11:48.777+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1", "Duration": "2.3376ms"}
+2026-01-15T00:12:03.267+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/showtimes", "Duration": "4.4474ms"}
+2026-01-15T00:12:12.536+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/cinemas/1/seats?date=2026-01-14&time=10:00:00", "Duration": "6.1467ms"}
+2026-01-15T00:13:37.798+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/movies", "Duration": "0s"}
+2026-01-15T00:20:51.904+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/movies", "Duration": "0s"}

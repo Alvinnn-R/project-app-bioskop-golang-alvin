@@ -1,0 +1,1 @@
+2026-01-15T00:21:10.209+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/movies", "Duration": "6.7153ms"}

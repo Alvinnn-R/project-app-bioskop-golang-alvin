@@ -37,6 +37,10 @@ func Wiring(repo *repository.Repository, config utils.Configuration, logger *zap
 		r.Post("/register", adaptors.AuthAdaptor.Register)
 		r.Post("/login", adaptors.AuthAdaptor.Login)
 
+		// Public routes - Movies
+		r.Get("/movies", adaptors.MovieAdaptor.GetAll)
+		r.Get("/movies/{movieId}", adaptors.MovieAdaptor.GetByID)
+
 		// Public routes - Cinema
 		r.Get("/cinemas", adaptors.CinemaAdaptor.GetAll)
 		r.Get("/cinemas/{cinemaId}", adaptors.CinemaAdaptor.GetByID)

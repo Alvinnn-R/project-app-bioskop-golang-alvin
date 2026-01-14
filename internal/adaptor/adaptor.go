@@ -12,6 +12,7 @@ type Adaptor struct {
 	SeatAdaptor    *SeatAdaptor
 	BookingAdaptor *BookingAdaptor
 	PaymentAdaptor *PaymentAdaptor
+	MovieAdaptor   *MovieAdaptor
 }
 
 func NewAdaptor(repo *repository.Repository, config utils.Configuration) *Adaptor {
@@ -21,6 +22,7 @@ func NewAdaptor(repo *repository.Repository, config utils.Configuration) *Adapto
 	seatUseCase := usecase.NewSeatUseCase(repo)
 	bookingUseCase := usecase.NewBookingUseCase(repo)
 	paymentUseCase := usecase.NewPaymentUseCase(repo)
+	movieUseCase := usecase.NewMovieUseCase(repo)
 
 	return &Adaptor{
 		AuthAdaptor:    NewAuthAdaptor(authUseCase),
@@ -28,5 +30,6 @@ func NewAdaptor(repo *repository.Repository, config utils.Configuration) *Adapto
 		SeatAdaptor:    NewSeatAdaptor(seatUseCase),
 		BookingAdaptor: NewBookingAdaptor(bookingUseCase),
 		PaymentAdaptor: NewPaymentAdaptor(paymentUseCase),
+		MovieAdaptor:   NewMovieAdaptor(movieUseCase),
 	}
 }

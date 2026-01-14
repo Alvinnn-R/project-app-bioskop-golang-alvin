@@ -11,6 +11,7 @@ type Repository struct {
 	Seat    SeatRepoInterface
 	Booking BookingRepoInterface
 	Payment PaymentRepoInterface
+	Movie   MovieRepoInterface
 }
 
 // NewRepository creates a new Repository instance with all sub-repositories
@@ -21,5 +22,6 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 		Seat:    NewSeatRepo(db),
 		Booking: NewBookingRepo(db),
 		Payment: NewPaymentRepo(db),
+		Movie:   NewMovieRepo(db),
 	}
 }
