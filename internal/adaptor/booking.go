@@ -26,7 +26,7 @@ func NewBookingAdaptor(useCase usecase.BookingUseCaseInterface) *BookingAdaptor 
 func (a *BookingAdaptor) Create(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		utils.ResponseBadRequest(w, http.StatusUnauthorized, "unauthorized", nil)
+		utils.ResponseUnauthorized(w, "unauthorized")
 		return
 	}
 
@@ -37,7 +37,7 @@ func (a *BookingAdaptor) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.Validate.Struct(req); err != nil {
-		utils.ResponseBadRequest(w, http.StatusBadRequest, "validation error", err.Error())
+		utils.ResponseValidationError(w, err.Error())
 		return
 	}
 
@@ -47,22 +47,22 @@ func (a *BookingAdaptor) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusCreated, "booking created successfully", booking)
+	utils.ResponseCreated(w, "booking created successfully", booking)
 }
 
 // GetUserBookings handles get user booking history
 func (a *BookingAdaptor) GetUserBookings(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		utils.ResponseBadRequest(w, http.StatusUnauthorized, "unauthorized", nil)
+		utils.ResponseUnauthorized(w, "unauthorized")
 		return
 	}
 
 	bookings, err := a.UseCase.GetUserBookings(r.Context(), userID)
 	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusInternalServerError, "failed to get bookings", nil)
+		utils.ResponseInternalError(w, "failed to get bookings")
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "success get booking history", bookings)
+	utils.ResponseOK(w, "success get booking history", bookings)
 }

@@ -2,19 +2,25 @@ package adaptor
 
 import (
 	"net/http"
+	"project-app-bioskop/internal/dto"
 	"project-app-bioskop/internal/usecase"
 	"project-app-bioskop/pkg/utils"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 )
 
 type SeatAdaptor struct {
-	UseCase usecase.SeatUseCaseInterface
+	UseCase  usecase.SeatUseCaseInterface
+	Validate *validator.Validate
 }
 
 func NewSeatAdaptor(useCase usecase.SeatUseCaseInterface) *SeatAdaptor {
-	return &SeatAdaptor{UseCase: useCase}
+	return &SeatAdaptor{
+		UseCase:  useCase,
+		Validate: validator.New(),
+	}
 }
 
 // GetAvailability handles get seat availability for a cinema showtime
@@ -26,21 +32,25 @@ func (a *SeatAdaptor) GetAvailability(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := r.URL.Query().Get("date")
-	showTime := r.URL.Query().Get("time")
+	// Get query params
+	req := dto.SeatQueryRequest{
+		Date: r.URL.Query().Get("date"),
+		Time: r.URL.Query().Get("time"),
+	}
 
-	if date == "" || showTime == "" {
-		utils.ResponseBadRequest(w, http.StatusBadRequest, "date and time are required", nil)
+	// Validate query params
+	if err := a.Validate.Struct(req); err != nil {
+		utils.ResponseValidationError(w, err.Error())
 		return
 	}
 
-	seats, err := a.UseCase.GetSeatAvailability(r.Context(), cinemaID, date, showTime)
+	seats, err := a.UseCase.GetSeatAvailability(r.Context(), cinemaID, req.Date, req.Time)
 	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusNotFound, "no showtime found for given parameters", nil)
+		utils.ResponseNotFound(w, "no showtime found for given parameters")
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "success get seat availability", seats)
+	utils.ResponseOK(w, "success get seat availability", seats)
 }
 
 // GetShowtimes handles get all showtimes for a cinema
@@ -54,9 +64,9 @@ func (a *SeatAdaptor) GetShowtimes(w http.ResponseWriter, r *http.Request) {
 
 	showtimes, err := a.UseCase.GetShowtimesByCinema(r.Context(), cinemaID)
 	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusInternalServerError, "failed to get showtimes", nil)
+		utils.ResponseInternalError(w, "failed to get showtimes")
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "success get showtimes", showtimes)
+	utils.ResponseOK(w, "success get showtimes", showtimes)
 }

@@ -26,3 +26,4 @@
 2026-01-15T00:32:40.501+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/pay", "Duration": "1.1308ms"}
 2026-01-15T00:35:26.210+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "POST", "URL": "/api/pay", "Duration": "15.9657ms"}
 2026-01-15T00:35:39.284+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/user/bookings", "Duration": "9.1729ms"}
+2026-01-15T00:36:32.624+0700	INFO	middleware/logging.go:23	Activity route	{"Method": "GET", "URL": "/api/movies", "Duration": "4.4032ms"}

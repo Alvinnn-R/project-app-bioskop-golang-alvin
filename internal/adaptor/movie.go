@@ -11,27 +11,32 @@ import (
 
 type MovieAdaptor struct {
 	UseCase usecase.MovieUseCaseInterface
+	Config  utils.Configuration
 }
 
-func NewMovieAdaptor(useCase usecase.MovieUseCaseInterface) *MovieAdaptor {
-	return &MovieAdaptor{UseCase: useCase}
+func NewMovieAdaptor(useCase usecase.MovieUseCaseInterface, config utils.Configuration) *MovieAdaptor {
+	return &MovieAdaptor{
+		UseCase: useCase,
+		Config:  config,
+	}
 }
 
 // GetAll handles get all movies with pagination
 func (a *MovieAdaptor) GetAll(w http.ResponseWriter, r *http.Request) {
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-
-	if page < 1 {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil || page < 1 {
 		page = 1
 	}
+
+	// Get limit from config
+	limit := a.Config.Limit
 	if limit < 1 {
 		limit = 10
 	}
 
 	movies, pagination, err := a.UseCase.GetAllMovies(r.Context(), page, limit)
 	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusInternalServerError, "failed to get movies", nil)
+		utils.ResponseInternalError(w, "failed to get movies")
 		return
 	}
 
@@ -49,9 +54,9 @@ func (a *MovieAdaptor) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	movie, err := a.UseCase.GetMovieByID(r.Context(), id)
 	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusNotFound, "movie not found", nil)
+		utils.ResponseNotFound(w, "movie not found")
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "success get movie", movie)
+	utils.ResponseOK(w, "success get movie", movie)
 }

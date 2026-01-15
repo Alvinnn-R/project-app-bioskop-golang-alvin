@@ -26,10 +26,10 @@ func NewAdaptor(repo *repository.Repository, config utils.Configuration) *Adapto
 
 	return &Adaptor{
 		AuthAdaptor:    NewAuthAdaptor(authUseCase),
-		CinemaAdaptor:  NewCinemaAdaptor(cinemaUseCase),
+		CinemaAdaptor:  NewCinemaAdaptor(cinemaUseCase, config),
 		SeatAdaptor:    NewSeatAdaptor(seatUseCase),
 		BookingAdaptor: NewBookingAdaptor(bookingUseCase),
 		PaymentAdaptor: NewPaymentAdaptor(paymentUseCase),
-		MovieAdaptor:   NewMovieAdaptor(movieUseCase),
+		MovieAdaptor:   NewMovieAdaptor(movieUseCase, config),
 	}
 }

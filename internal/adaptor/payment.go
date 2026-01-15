@@ -26,18 +26,18 @@ func NewPaymentAdaptor(useCase usecase.PaymentUseCaseInterface) *PaymentAdaptor 
 func (a *PaymentAdaptor) GetMethods(w http.ResponseWriter, r *http.Request) {
 	methods, err := a.UseCase.GetPaymentMethods(r.Context())
 	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusInternalServerError, "failed to get payment methods", nil)
+		utils.ResponseInternalError(w, "failed to get payment methods")
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "success get payment methods", methods)
+	utils.ResponseOK(w, "success get payment methods", methods)
 }
 
 // ProcessPayment handles payment processing
 func (a *PaymentAdaptor) ProcessPayment(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
-		utils.ResponseBadRequest(w, http.StatusUnauthorized, "unauthorized", nil)
+		utils.ResponseUnauthorized(w, "unauthorized")
 		return
 	}
 
@@ -48,7 +48,7 @@ func (a *PaymentAdaptor) ProcessPayment(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := a.Validate.Struct(req); err != nil {
-		utils.ResponseBadRequest(w, http.StatusBadRequest, "validation error", err.Error())
+		utils.ResponseValidationError(w, err.Error())
 		return
 	}
 
@@ -58,5 +58,5 @@ func (a *PaymentAdaptor) ProcessPayment(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "payment successful", payment)
+	utils.ResponseOK(w, "payment successful", payment)
 }

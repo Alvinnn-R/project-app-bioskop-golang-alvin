@@ -31,7 +31,7 @@ func (a *AuthAdaptor) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.Validate.Struct(req); err != nil {
-		utils.ResponseBadRequest(w, http.StatusBadRequest, "validation error", err.Error())
+		utils.ResponseValidationError(w, err.Error())
 		return
 	}
 
@@ -41,7 +41,7 @@ func (a *AuthAdaptor) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusCreated, "registration successful", user)
+	utils.ResponseCreated(w, "registration successful", user)
 }
 
 // Login handles user login
@@ -53,17 +53,17 @@ func (a *AuthAdaptor) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.Validate.Struct(req); err != nil {
-		utils.ResponseBadRequest(w, http.StatusBadRequest, "validation error", err.Error())
+		utils.ResponseValidationError(w, err.Error())
 		return
 	}
 
 	response, err := a.UseCase.Login(r.Context(), req)
 	if err != nil {
-		utils.ResponseBadRequest(w, http.StatusUnauthorized, err.Error(), nil)
+		utils.ResponseUnauthorized(w, err.Error())
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "login successful", response)
+	utils.ResponseOK(w, "login successful", response)
 }
 
 // Logout handles user logout
@@ -80,9 +80,9 @@ func (a *AuthAdaptor) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.UseCase.Logout(r.Context(), token); err != nil {
-		utils.ResponseBadRequest(w, http.StatusInternalServerError, "logout failed", nil)
+		utils.ResponseInternalError(w, "logout failed")
 		return
 	}
 
-	utils.ResponseSuccess(w, http.StatusOK, "logout successful", nil)
+	utils.ResponseOK(w, "logout successful", nil)
 }
