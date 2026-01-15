@@ -4,8 +4,6 @@ import (
 	"context"
 	"project-app-bioskop/internal/data/entity"
 	"project-app-bioskop/internal/dto"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type MovieRepoInterface interface {
@@ -14,10 +12,10 @@ type MovieRepoInterface interface {
 }
 
 type MovieRepo struct {
-	DB *pgxpool.Pool
+	DB DBPool
 }
 
-func NewMovieRepo(db *pgxpool.Pool) MovieRepoInterface {
+func NewMovieRepo(db DBPool) MovieRepoInterface {
 	return &MovieRepo{DB: db}
 }
 

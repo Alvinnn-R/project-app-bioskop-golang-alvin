@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"project-app-bioskop/internal/data/entity"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SeatRepoInterface interface {
@@ -17,10 +15,10 @@ type SeatRepoInterface interface {
 }
 
 type SeatRepo struct {
-	DB *pgxpool.Pool
+	DB DBPool
 }
 
-func NewSeatRepo(db *pgxpool.Pool) SeatRepoInterface {
+func NewSeatRepo(db DBPool) SeatRepoInterface {
 	return &SeatRepo{DB: db}
 }
 

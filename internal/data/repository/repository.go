@@ -1,9 +1,5 @@
 package repository
 
-import (
-	"github.com/jackc/pgx/v5/pgxpool"
-)
-
 // Repository aggregates all repository interfaces
 type Repository struct {
 	Auth    AuthRepoInterface
@@ -15,7 +11,7 @@ type Repository struct {
 }
 
 // NewRepository creates a new Repository instance with all sub-repositories
-func NewRepository(db *pgxpool.Pool) *Repository {
+func NewRepository(db DBPool) *Repository {
 	return &Repository{
 		Auth:    NewAuthRepo(db),
 		Cinema:  NewCinemaRepo(db),

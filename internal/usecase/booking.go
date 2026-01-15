@@ -3,9 +3,12 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"project-app-bioskop/internal/data/entity"
 	"project-app-bioskop/internal/data/repository"
 	"project-app-bioskop/internal/dto"
+	"project-app-bioskop/pkg/utils"
+	"strings"
 )
 
 type BookingUseCaseInterface interface {
@@ -14,11 +17,25 @@ type BookingUseCaseInterface interface {
 }
 
 type BookingUseCase struct {
-	Repo *repository.Repository
+	Repo         *repository.Repository
+	EmailService *utils.EmailService
 }
 
 func NewBookingUseCase(repo *repository.Repository) BookingUseCaseInterface {
-	return &BookingUseCase{Repo: repo}
+	return &BookingUseCase{
+		Repo:         repo,
+		EmailService: utils.NewEmailService(),
+	}
+}
+
+// sendBookingConfirmation sends booking confirmation email asynchronously (GOROUTINE)
+func (u *BookingUseCase) sendBookingConfirmation(email, username, movieTitle, showDate, showTime string, seats []string, totalAmount float64) {
+	seatList := strings.Join(seats, ", ")
+	message := fmt.Sprintf(
+		"Dear %s,\n\nYour booking has been confirmed!\n\nMovie: %s\nDate: %s\nTime: %s\nSeats: %s\nTotal Amount: Rp %.0f\n\nThank you for choosing our cinema!",
+		username, movieTitle, showDate, showTime, seatList, totalAmount,
+	)
+	u.EmailService.SendOTP(email, username, message)
 }
 
 // CreateBooking creates a new seat booking
@@ -72,7 +89,7 @@ func (u *BookingUseCase) CreateBooking(ctx context.Context, userID int, req dto.
 		})
 	}
 
-	return dto.BookingResponse{
+	response := dto.BookingResponse{
 		ID: bookingID,
 		Showtime: dto.ShowtimeResponse{
 			ID:       showtime.ID,
@@ -97,7 +114,29 @@ func (u *BookingUseCase) CreateBooking(ctx context.Context, userID int, req dto.
 		TotalAmount: createdBooking.TotalAmount,
 		Status:      createdBooking.Status,
 		CreatedAt:   createdBooking.CreatedAt,
-	}, nil
+	}
+
+	// Send booking confirmation email asynchronously using GOROUTINE
+	// This allows the API to respond immediately without waiting for email to be sent
+	user, _ := u.Repo.Auth.GetUserByID(ctx, userID)
+	if user.Email != "" {
+		var seatCodes []string
+		for _, s := range seats {
+			seatCodes = append(seatCodes, s.SeatCode)
+		}
+		// GOROUTINE: Non-blocking email notification
+		go u.sendBookingConfirmation(
+			user.Email,
+			user.Username,
+			showtime.Movie.Title,
+			showtime.ShowDate,
+			showtime.ShowTime,
+			seatCodes,
+			createdBooking.TotalAmount,
+		)
+	}
+
+	return response, nil
 }
 
 // GetUserBookings retrieves all bookings for a user

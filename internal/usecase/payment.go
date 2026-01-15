@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"project-app-bioskop/internal/data/entity"
 	"project-app-bioskop/internal/data/repository"
 	"project-app-bioskop/internal/dto"
+	"project-app-bioskop/pkg/utils"
 )
 
 type PaymentUseCaseInterface interface {
@@ -15,11 +17,24 @@ type PaymentUseCaseInterface interface {
 }
 
 type PaymentUseCase struct {
-	Repo *repository.Repository
+	Repo         *repository.Repository
+	EmailService *utils.EmailService
 }
 
 func NewPaymentUseCase(repo *repository.Repository) PaymentUseCaseInterface {
-	return &PaymentUseCase{Repo: repo}
+	return &PaymentUseCase{
+		Repo:         repo,
+		EmailService: utils.NewEmailService(),
+	}
+}
+
+// sendPaymentConfirmation sends payment confirmation email asynchronously (GOROUTINE)
+func (u *PaymentUseCase) sendPaymentConfirmation(email, username, paymentMethod string, amount float64) {
+	message := fmt.Sprintf(
+		"Dear %s,\n\nYour payment has been processed successfully!\n\nPayment Method: %s\nAmount: Rp %.0f\n\nThank you for your purchase!",
+		username, paymentMethod, amount,
+	)
+	u.EmailService.SendOTP(email, username, message)
 }
 
 // GetPaymentMethods retrieves all available payment methods
@@ -95,6 +110,14 @@ func (u *PaymentUseCase) ProcessPayment(ctx context.Context, userID int, req dto
 	}
 
 	createdPayment, _ := u.Repo.Payment.GetPaymentByBookingID(ctx, req.BookingID)
+
+	// Send payment confirmation email asynchronously using GOROUTINE
+	// This allows the API to respond immediately without waiting for email to be sent
+	user, _ := u.Repo.Auth.GetUserByID(ctx, userID)
+	if user.Email != "" {
+		// GOROUTINE: Non-blocking email notification after payment
+		go u.sendPaymentConfirmation(user.Email, user.Username, method.Name, booking.TotalAmount)
+	}
 
 	return dto.PaymentResponse{
 		ID:            paymentID,

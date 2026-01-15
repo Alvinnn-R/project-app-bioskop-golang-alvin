@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"project-app-bioskop/internal/data/entity"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AuthRepoInterface interface {
@@ -24,10 +22,10 @@ type AuthRepoInterface interface {
 }
 
 type AuthRepo struct {
-	DB *pgxpool.Pool
+	DB DBPool
 }
 
-func NewAuthRepo(db *pgxpool.Pool) AuthRepoInterface {
+func NewAuthRepo(db DBPool) AuthRepoInterface {
 	return &AuthRepo{DB: db}
 }
 

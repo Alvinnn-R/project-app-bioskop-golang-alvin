@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"project-app-bioskop/internal/data/entity"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PaymentRepoInterface interface {
@@ -16,10 +14,10 @@ type PaymentRepoInterface interface {
 }
 
 type PaymentRepo struct {
-	DB *pgxpool.Pool
+	DB DBPool
 }
 
-func NewPaymentRepo(db *pgxpool.Pool) PaymentRepoInterface {
+func NewPaymentRepo(db DBPool) PaymentRepoInterface {
 	return &PaymentRepo{DB: db}
 }
 

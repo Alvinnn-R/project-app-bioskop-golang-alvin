@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"project-app-bioskop/internal/data/entity"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CinemaRepoInterface interface {
@@ -15,10 +13,10 @@ type CinemaRepoInterface interface {
 }
 
 type CinemaRepo struct {
-	DB *pgxpool.Pool
+	DB DBPool
 }
 
-func NewCinemaRepo(db *pgxpool.Pool) CinemaRepoInterface {
+func NewCinemaRepo(db DBPool) CinemaRepoInterface {
 	return &CinemaRepo{DB: db}
 }
 

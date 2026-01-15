@@ -5,7 +5,6 @@ import (
 	"project-app-bioskop/internal/data/entity"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type BookingRepoInterface interface {
@@ -17,10 +16,10 @@ type BookingRepoInterface interface {
 }
 
 type BookingRepo struct {
-	DB *pgxpool.Pool
+	DB DBPool
 }
 
-func NewBookingRepo(db *pgxpool.Pool) BookingRepoInterface {
+func NewBookingRepo(db DBPool) BookingRepoInterface {
 	return &BookingRepo{DB: db}
 }
 
