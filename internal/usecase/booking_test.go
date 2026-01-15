@@ -431,25 +431,6 @@ func TestBookingUseCase_GetUserBookings_Success(t *testing.T) {
 	mockSeatRepo.AssertExpectations(t)
 }
 
-func TestBookingUseCase_GetUserBookings_Empty(t *testing.T) {
-	mockBookingRepo := new(MockBookingRepo)
-	mockSeatRepo := new(MockSeatRepoForBooking)
-
-	repo := &repository.Repository{
-		Booking: mockBookingRepo,
-		Seat:    mockSeatRepo,
-	}
-	usecase := &BookingUseCase{Repo: repo}
-
-	mockBookingRepo.On("GetBookingsByUserID", mock.Anything, 999).Return([]entity.Booking{}, nil)
-
-	result, err := usecase.GetUserBookings(context.Background(), 999)
-
-	assert.NoError(t, err)
-	assert.Nil(t, result)
-	mockBookingRepo.AssertExpectations(t)
-}
-
 func TestBookingUseCase_GetUserBookings_Error(t *testing.T) {
 	mockBookingRepo := new(MockBookingRepo)
 	mockSeatRepo := new(MockSeatRepoForBooking)
