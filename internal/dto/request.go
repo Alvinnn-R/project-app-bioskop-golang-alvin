@@ -26,11 +26,9 @@ type ResendOTPRequest struct {
 
 // BookingRequest for seat booking
 type BookingRequest struct {
-	ShowtimeID    int    `json:"showtime_id" validate:"required"`
-	SeatIDs       []int  `json:"seat_ids" validate:"required,min=1"`
-	PaymentMethod int    `json:"payment_method" validate:"required"`
-	Date          string `json:"date" validate:"required"`
-	Time          string `json:"time" validate:"required"`
+	ShowtimeID    int   `json:"showtime_id" validate:"required"`
+	SeatIDs       []int `json:"seat_ids" validate:"required,min=1"`
+	PaymentMethod int   `json:"payment_method" validate:"required"`
 }
 
 // PayRequest for processing payment
