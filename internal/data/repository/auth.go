@@ -10,10 +10,17 @@ import (
 type AuthRepoInterface interface {
 	CreateUser(ctx context.Context, user entity.User) (int, error)
 	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
 	GetUserByID(ctx context.Context, id int) (entity.User, error)
+	UpdateUserVerified(ctx context.Context, userID int) error
 	CreateSession(ctx context.Context, session entity.Session) error
 	GetSessionByToken(ctx context.Context, token string) (entity.Session, error)
 	RevokeSession(ctx context.Context, token string) error
+	// OTP functions
+	CreateOTP(ctx context.Context, otp entity.OTP) error
+	GetValidOTP(ctx context.Context, userID int, otpCode string) (entity.OTP, error)
+	MarkOTPUsed(ctx context.Context, otpID int) error
+	InvalidateUserOTPs(ctx context.Context, userID int) error
 }
 
 type AuthRepo struct {
@@ -91,5 +98,62 @@ func (r *AuthRepo) GetSessionByToken(ctx context.Context, token string) (entity.
 func (r *AuthRepo) RevokeSession(ctx context.Context, token string) error {
 	query := `UPDATE sessions SET revoked_at = NOW() WHERE token = $1`
 	_, err := r.DB.Exec(ctx, query, token)
+	return err
+}
+
+// GetUserByEmail retrieves user by email
+func (r *AuthRepo) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
+	query := `SELECT id, username, email, password_hash, is_verified, created_at, updated_at 
+			  FROM users WHERE email = $1`
+	var user entity.User
+	err := r.DB.QueryRow(ctx, query, email).Scan(
+		&user.ID, &user.Username, &user.Email, &user.PasswordHash,
+		&user.IsVerified, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+// UpdateUserVerified marks user as verified
+func (r *AuthRepo) UpdateUserVerified(ctx context.Context, userID int) error {
+	query := `UPDATE users SET is_verified = true, updated_at = NOW() WHERE id = $1`
+	_, err := r.DB.Exec(ctx, query, userID)
+	return err
+}
+
+// CreateOTP creates a new OTP record
+func (r *AuthRepo) CreateOTP(ctx context.Context, otp entity.OTP) error {
+	query := `INSERT INTO otps (user_id, otp_code, expired_at) VALUES ($1, $2, $3)`
+	_, err := r.DB.Exec(ctx, query, otp.UserID, otp.OTPCode, otp.ExpiredAt)
+	return err
+}
+
+// GetValidOTP retrieves a valid (not expired, not used) OTP
+func (r *AuthRepo) GetValidOTP(ctx context.Context, userID int, otpCode string) (entity.OTP, error) {
+	query := `SELECT id, user_id, otp_code, expired_at, is_used, created_at 
+			  FROM otps WHERE user_id = $1 AND otp_code = $2 AND is_used = false AND expired_at > NOW()`
+	var otp entity.OTP
+	err := r.DB.QueryRow(ctx, query, userID, otpCode).Scan(
+		&otp.ID, &otp.UserID, &otp.OTPCode, &otp.ExpiredAt, &otp.IsUsed, &otp.CreatedAt,
+	)
+	if err != nil {
+		return otp, err
+	}
+	return otp, nil
+}
+
+// MarkOTPUsed marks an OTP as used
+func (r *AuthRepo) MarkOTPUsed(ctx context.Context, otpID int) error {
+	query := `UPDATE otps SET is_used = true WHERE id = $1`
+	_, err := r.DB.Exec(ctx, query, otpID)
+	return err
+}
+
+// InvalidateUserOTPs marks all existing OTPs for a user as used
+func (r *AuthRepo) InvalidateUserOTPs(ctx context.Context, userID int) error {
+	query := `UPDATE otps SET is_used = true WHERE user_id = $1 AND is_used = false`
+	_, err := r.DB.Exec(ctx, query, userID)
 	return err
 }

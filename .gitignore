@@ -1,1 +1,2 @@
-.logs/*
+logs/*
+database_file/migration_otp.sql

@@ -35,6 +35,8 @@ func Wiring(repo *repository.Repository, config utils.Configuration, logger *zap
 	router.Route("/api", func(r chi.Router) {
 		// Public routes - Authentication
 		r.Post("/register", adaptors.AuthAdaptor.Register)
+		r.Post("/verify-otp", adaptors.AuthAdaptor.VerifyOTP)
+		r.Post("/resend-otp", adaptors.AuthAdaptor.ResendOTP)
 		r.Post("/login", adaptors.AuthAdaptor.Login)
 
 		// Public routes - Movies

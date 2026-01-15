@@ -13,6 +13,17 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// VerifyOTPRequest for email OTP verification
+type VerifyOTPRequest struct {
+	Email string `json:"email" validate:"required,email"`
+	OTP   string `json:"otp" validate:"required,len=6"`
+}
+
+// ResendOTPRequest for resending OTP
+type ResendOTPRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
 // BookingRequest for seat booking
 type BookingRequest struct {
 	ShowtimeID    int    `json:"showtime_id" validate:"required"`

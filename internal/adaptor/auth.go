@@ -41,7 +41,49 @@ func (a *AuthAdaptor) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ResponseCreated(w, "registration successful", user)
+	utils.ResponseCreated(w, "registration successful, please check your email for OTP verification", user)
+}
+
+// VerifyOTP handles OTP verification
+func (a *AuthAdaptor) VerifyOTP(w http.ResponseWriter, r *http.Request) {
+	var req dto.VerifyOTPRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.ResponseBadRequest(w, http.StatusBadRequest, "invalid request body", nil)
+		return
+	}
+
+	if err := a.Validate.Struct(req); err != nil {
+		utils.ResponseValidationError(w, err.Error())
+		return
+	}
+
+	if err := a.UseCase.VerifyOTP(r.Context(), req); err != nil {
+		utils.ResponseBadRequest(w, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	utils.ResponseOK(w, "email verified successfully", nil)
+}
+
+// ResendOTP handles resending OTP
+func (a *AuthAdaptor) ResendOTP(w http.ResponseWriter, r *http.Request) {
+	var req dto.ResendOTPRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.ResponseBadRequest(w, http.StatusBadRequest, "invalid request body", nil)
+		return
+	}
+
+	if err := a.Validate.Struct(req); err != nil {
+		utils.ResponseValidationError(w, err.Error())
+		return
+	}
+
+	if err := a.UseCase.ResendOTP(r.Context(), req); err != nil {
+		utils.ResponseBadRequest(w, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	utils.ResponseOK(w, "OTP resent successfully, please check your email", nil)
 }
 
 // Login handles user login
