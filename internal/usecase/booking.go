@@ -9,7 +9,15 @@ import (
 	"project-app-bioskop/internal/dto"
 	"project-app-bioskop/pkg/utils"
 	"strings"
+	"time"
 )
+
+// bookingDetailResult is used for concurrent booking detail fetching
+type bookingDetailResult struct {
+	Index    int
+	Response dto.BookingResponse
+	Err      error
+}
 
 type BookingUseCaseInterface interface {
 	CreateBooking(ctx context.Context, userID int, req dto.BookingRequest) (dto.BookingResponse, error)
@@ -139,72 +147,117 @@ func (u *BookingUseCase) CreateBooking(ctx context.Context, userID int, req dto.
 	return response, nil
 }
 
-// GetUserBookings retrieves all bookings for a user
+// GetUserBookings retrieves all bookings for a user using CONCURRENT GOROUTINES with CHANNELS
+// This implementation follows the pattern: context timeout, channels, select, and error handling
 func (u *BookingUseCase) GetUserBookings(ctx context.Context, userID int) ([]dto.BookingResponse, error) {
+	// Create context with timeout for concurrent operations
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	// Get bookings first
 	bookings, err := u.Repo.Booking.GetBookingsByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var responses []dto.BookingResponse
-	for _, b := range bookings {
-		showtime, _ := u.Repo.Seat.GetShowtimeByID(ctx, b.ShowtimeID)
-		bookingSeats, _ := u.Repo.Booking.GetBookingSeats(ctx, b.ID)
+	if len(bookings) == 0 {
+		return []dto.BookingResponse{}, nil
+	}
 
-		var seatIDs []int
-		for _, bs := range bookingSeats {
-			seatIDs = append(seatIDs, bs.SeatID)
-		}
+	// Create buffered channel to receive results from goroutines
+	resultCh := make(chan bookingDetailResult, len(bookings))
 
-		seats, _ := u.Repo.Seat.GetSeatsByIDs(ctx, seatIDs)
-		var seatResponses []dto.SeatResponse
-		for _, s := range seats {
-			seatResponses = append(seatResponses, dto.SeatResponse{
-				ID:       s.ID,
-				SeatCode: s.SeatCode,
-			})
-		}
-
-		// Get payment if exists
-		var paymentResp *dto.PaymentResponse
-		payment, err := u.Repo.Payment.GetPaymentByBookingID(ctx, b.ID)
-		if err == nil {
-			method, _ := u.Repo.Payment.GetPaymentMethodByID(ctx, payment.PaymentMethodID)
-			paymentResp = &dto.PaymentResponse{
-				ID:            payment.ID,
-				PaymentMethod: method.Name,
-				Status:        payment.Status,
-				PaidAt:        payment.PaidAt,
+	// Launch goroutines concurrently to fetch each booking's details
+	for i, b := range bookings {
+		go func(index int, booking entity.Booking) {
+			// Fetch showtime details
+			showtime, err := u.Repo.Seat.GetShowtimeByID(ctx, booking.ShowtimeID)
+			if err != nil {
+				resultCh <- bookingDetailResult{Index: index, Err: fmt.Errorf("failed to get showtime: %w", err)}
+				return
 			}
-		}
 
-		responses = append(responses, dto.BookingResponse{
-			ID: b.ID,
-			Showtime: dto.ShowtimeResponse{
-				ID:       showtime.ID,
-				ShowDate: showtime.ShowDate,
-				ShowTime: showtime.ShowTime,
-				Price:    showtime.Price,
-				Movie: dto.MovieResponse{
-					ID:              showtime.Movie.ID,
-					Title:           showtime.Movie.Title,
-					PosterURL:       showtime.Movie.PosterURL,
-					Genres:          showtime.Movie.Genres,
-					Rating:          showtime.Movie.Rating,
-					DurationMinutes: showtime.Movie.DurationMinutes,
+			// Fetch booking seats
+			bookingSeats, err := u.Repo.Booking.GetBookingSeats(ctx, booking.ID)
+			if err != nil {
+				resultCh <- bookingDetailResult{Index: index, Err: fmt.Errorf("failed to get booking seats: %w", err)}
+				return
+			}
+
+			var seatIDs []int
+			for _, bs := range bookingSeats {
+				seatIDs = append(seatIDs, bs.SeatID)
+			}
+
+			// Fetch seat details
+			seats, _ := u.Repo.Seat.GetSeatsByIDs(ctx, seatIDs)
+			var seatResponses []dto.SeatResponse
+			for _, s := range seats {
+				seatResponses = append(seatResponses, dto.SeatResponse{
+					ID:       s.ID,
+					SeatCode: s.SeatCode,
+				})
+			}
+
+			// Get payment if exists
+			var paymentResp *dto.PaymentResponse
+			payment, err := u.Repo.Payment.GetPaymentByBookingID(ctx, booking.ID)
+			if err == nil {
+				method, _ := u.Repo.Payment.GetPaymentMethodByID(ctx, payment.PaymentMethodID)
+				paymentResp = &dto.PaymentResponse{
+					ID:            payment.ID,
+					PaymentMethod: method.Name,
+					Status:        payment.Status,
+					PaidAt:        payment.PaidAt,
+				}
+			}
+
+			// Build response
+			response := dto.BookingResponse{
+				ID: booking.ID,
+				Showtime: dto.ShowtimeResponse{
+					ID:       showtime.ID,
+					ShowDate: showtime.ShowDate,
+					ShowTime: showtime.ShowTime,
+					Price:    showtime.Price,
+					Movie: dto.MovieResponse{
+						ID:              showtime.Movie.ID,
+						Title:           showtime.Movie.Title,
+						PosterURL:       showtime.Movie.PosterURL,
+						Genres:          showtime.Movie.Genres,
+						Rating:          showtime.Movie.Rating,
+						DurationMinutes: showtime.Movie.DurationMinutes,
+					},
+					Studio: dto.StudioResponse{
+						ID:         showtime.Studio.ID,
+						Name:       showtime.Studio.Name,
+						TotalSeats: showtime.Studio.TotalSeats,
+					},
 				},
-				Studio: dto.StudioResponse{
-					ID:         showtime.Studio.ID,
-					Name:       showtime.Studio.Name,
-					TotalSeats: showtime.Studio.TotalSeats,
-				},
-			},
-			Seats:       seatResponses,
-			TotalAmount: b.TotalAmount,
-			Status:      b.Status,
-			Payment:     paymentResp,
-			CreatedAt:   b.CreatedAt,
-		})
+				Seats:       seatResponses,
+				TotalAmount: booking.TotalAmount,
+				Status:      booking.Status,
+				Payment:     paymentResp,
+				CreatedAt:   booking.CreatedAt,
+			}
+
+			resultCh <- bookingDetailResult{Index: index, Response: response, Err: nil}
+		}(i, b)
+	}
+
+	// Collect results from all goroutines using SELECT statement
+	responses := make([]dto.BookingResponse, len(bookings))
+	for i := 0; i < len(bookings); i++ {
+		select {
+		case <-ctx.Done():
+			// Context timeout or cancellation
+			return nil, fmt.Errorf("request timeout: %w", ctx.Err())
+		case result := <-resultCh:
+			if result.Err != nil {
+				return nil, result.Err
+			}
+			responses[result.Index] = result.Response
+		}
 	}
 
 	return responses, nil
